@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/Ashbeeson7943/RESTful_CRUD_API/config/config"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -129,9 +132,9 @@ func deleteAlbumByID(c *gin.Context){
 
 //region DB stuff
 
-func launchDB() {
+func launchDB(conf config.Config) {
 
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	clientOptions := options.Client().ApplyURI(conf.DB_URI)
 
 	c, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
@@ -167,15 +170,32 @@ var collection *mongo.Collection
 //endregion
 
 
+// region config
 
+
+	
+
+// endregion
 
 
 
 func main() {
-		
+
+	configPathPtr := flag.String("config", "./config.json", "file path to config file")
+
+	flag.Parse()
+
+	if *configPathPtr == ""{
+		fmt.Println("no config path found")
+		os.Exit(1)
+	}
+
+	config := config.loadConfig(*configPathPtr)
+
+
 	router := gin.Default()
 
-	launchDB()
+	launchDB(config)
 	seedDB()
 
 
@@ -186,6 +206,6 @@ func main() {
 	router.PUT("/albums/:id", updateAlbumByID)
 	router.DELETE("/albums/:id", deleteAlbumByID)
 
-    router.Run("localhost:8080")
+    router.Run(config.API_CONFIG.fullURL())
 
 }
