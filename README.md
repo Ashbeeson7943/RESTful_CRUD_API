@@ -11,3 +11,4 @@
 - [ ] Set a different price for each CRUD operation
 - [ ] Generate revenue reports and usage reports
 - [ ] Generate invoices with a detailed breakdown of API usage per key
+- [ ] Add tests for API Endpoints
