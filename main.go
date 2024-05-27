@@ -79,49 +79,49 @@ func postAlbum(c *gin.Context){
 //func to get specific album by ID
 func getAlbumByID(c *gin.Context){
 	id := c.Param("id")
+	filter := bson.D{{Key: "id", Value: id}}
+	var res album
 
-	for _, a := range albums {
-		if a.ID == id{
-			c.IndentedJSON(http.StatusOK, a)
-			return
-		}
+	err := collection.FindOne(context.TODO(), filter).Decode(&res)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
+	} else {
+		c.IndentedJSON(http.StatusOK, res)
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 }
 
 //func to update an album
 func updateAlbumByID(c *gin.Context){
 	id := c.Param("id")
 	var newAlbum album
-	index := 0
-
 	if err := c.BindJSON(&newAlbum); err != nil{
 		return
 	}
-	for _, a := range albums {
-		if a.ID == id{
-			albums[index] = newAlbum
-			c.IndentedJSON(http.StatusOK, newAlbum)
-			return
-		}
-		index++
+
+	filter := bson.M{"id": id}
+	update := bson.D{{ Key: "$set", Value: bson.D{{Key: "id", Value: newAlbum.ID},{ Key: "title", Value: newAlbum.TITLE}, {Key: "artist", Value: newAlbum.ARTIST}, {Key: "price", Value: newAlbum.PRICE}}}}
+	opts := options.Update().SetUpsert(true)
+
+
+	_, err := collection.UpdateOne(context.TODO(), filter, update, opts)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found", "error" : err})
+	} else {
+		c.IndentedJSON(http.StatusAccepted, newAlbum)
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
 }
 
 //func to delete album
 func deleteAlbumByID(c *gin.Context){
 	id := c.Param("id")
-	index := 0
-	for _, a := range albums {
-		if a.ID == id{
-			albums = append(albums[:index], albums[index+1:]...)
-			c.IndentedJSON(http.StatusAccepted, a)
-			return
-		}
-		index++
+	filter := bson.M{"id": id}
+	
+	_, err := collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		log.Fatal(err)
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
+	msg := fmt.Sprintf("document with ID:%v deleted", id)
+	c.IndentedJSON(http.StatusAccepted, gin.H{"mesage": msg})
 }
 
 //endregion
