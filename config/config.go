@@ -1,4 +1,4 @@
-package config
+package internalConfig
 
 import (
 	"encoding/json"
@@ -16,13 +16,14 @@ type Config struct {
 type ApiConfig struct {
 	HOST string `json:"host"`
 	PORT string `json:"port"`
+	BASE_PATH string `json:"base_path"`
 }
 
-func (ac *ApiConfig) fullURL() string {
+func (ac *ApiConfig) FullURL() string {
 	return fmt.Sprintf("%v:%v", ac.HOST, ac.PORT)
 }
 
-func loadConfig(configFilePath string) Config {
+func LoadConfig(configFilePath string) Config {
 	configJson, err := os.Open(configFilePath)
 	if err != nil {
 		log.Fatal(err)
