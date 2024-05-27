@@ -24,4 +24,11 @@ It doesn't matter if its comic book information, movie ratings, sports scores, o
 - Http
 - JSON encoding
 
+### How to run
+- run PowerShell script start_db.ps1
+- run bash build_and_run.sh
 
+
+### Links
+
+- [MongoDB](https://www.mongodb.com/blog/post/mongodb-go-driver-tutorial)
