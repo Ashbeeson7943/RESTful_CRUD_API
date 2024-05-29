@@ -14,8 +14,8 @@ type Config struct {
 }
 
 type ApiConfig struct {
-	HOST string `json:"host"`
-	PORT string `json:"port"`
+	HOST      string `json:"host"`
+	PORT      string `json:"port"`
 	BASE_PATH string `json:"base_path"`
 }
 

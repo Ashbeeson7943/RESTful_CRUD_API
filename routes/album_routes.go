@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Ashbeeson7943/RESTful_CRUD_API/auth"
 	"github.com/Ashbeeson7943/RESTful_CRUD_API/data"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,16 +14,19 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-
 var Collection *mongo.Collection
+var Access auth.Access
 
-//Func to get all albums stored
+// Func to get all albums stored
 func GetAlbums(c *gin.Context) {
+	if !auth.ValidateAccess(Access, auth.ALLOWED) {
+		return
+	}
 	//DB
 	var results []*data.Album
 
 	findOptions := options.Find()
-	
+
 	cur, err := Collection.Find(context.TODO(), bson.D{{}}, findOptions)
 	if err != nil {
 		log.Fatal(err)
@@ -47,10 +51,13 @@ func GetAlbums(c *gin.Context) {
 }
 
 // func to add an album
-func PostAlbum(c *gin.Context){
+func PostAlbum(c *gin.Context) {
+	if !auth.ValidateAccess(Access, auth.ALLOWED) {
+		return
+	}
 	var newAlbum data.Album
 
-	if err := c.BindJSON(&newAlbum); err != nil{
+	if err := c.BindJSON(&newAlbum); err != nil {
 		return
 	}
 
@@ -60,8 +67,11 @@ func PostAlbum(c *gin.Context){
 	c.IndentedJSON(http.StatusCreated, newAlbum)
 }
 
-//func to get specific album by ID
-func GetAlbumByID(c *gin.Context){
+// func to get specific album by ID
+func GetAlbumByID(c *gin.Context) {
+	if !auth.ValidateAccess(Access, auth.ALLOWED) {
+		return
+	}
 	id := c.Param("id")
 	filter := bson.D{{Key: "id", Value: id}}
 	var res data.Album
@@ -74,32 +84,37 @@ func GetAlbumByID(c *gin.Context){
 	}
 }
 
-//func to update an album
-func UpdateAlbumByID(c *gin.Context){
+// func to update an album
+func UpdateAlbumByID(c *gin.Context) {
+	if !auth.ValidateAccess(Access, auth.ALLOWED) {
+		return
+	}
 	id := c.Param("id")
 	var newAlbum data.Album
-	if err := c.BindJSON(&newAlbum); err != nil{
+	if err := c.BindJSON(&newAlbum); err != nil {
 		return
 	}
 
 	filter := bson.M{"id": id}
-	update := bson.D{{ Key: "$set", Value: bson.D{{Key: "id", Value: newAlbum.ID},{ Key: "title", Value: newAlbum.TITLE}, {Key: "artist", Value: newAlbum.ARTIST}, {Key: "price", Value: newAlbum.PRICE}}}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "id", Value: newAlbum.ID}, {Key: "title", Value: newAlbum.TITLE}, {Key: "artist", Value: newAlbum.ARTIST}, {Key: "price", Value: newAlbum.PRICE}}}}
 	opts := options.Update().SetUpsert(true)
-
 
 	_, err := Collection.UpdateOne(context.TODO(), filter, update, opts)
 	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found", "error" : err})
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found", "error": err})
 	} else {
 		c.IndentedJSON(http.StatusAccepted, newAlbum)
 	}
 }
 
-//func to delete album
-func DeleteAlbumByID(c *gin.Context){
+// func to delete album
+func DeleteAlbumByID(c *gin.Context) {
+	if !auth.ValidateAccess(Access, auth.ALLOWED) {
+		return
+	}
 	id := c.Param("id")
 	filter := bson.M{"id": id}
-	
+
 	_, err := Collection.DeleteOne(context.TODO(), filter)
 	if err != nil {
 		log.Fatal(err)
@@ -107,4 +122,3 @@ func DeleteAlbumByID(c *gin.Context){
 	msg := fmt.Sprintf("document with ID:%v deleted", id)
 	c.IndentedJSON(http.StatusAccepted, gin.H{"mesage": msg})
 }
-
