@@ -48,6 +48,8 @@ func main() {
 		album_routes.Access = *auth.GetAccess()
 	})
 
+	//TODO: Add Access check as middleware
+
 	//Set routes and handler
 	router.GET(config.API_CONFIG.BASE_PATH, album_routes.GetAlbums)
 	router.GET(fmt.Sprintf("%s/:id", config.API_CONFIG.BASE_PATH), album_routes.GetAlbumByID)
