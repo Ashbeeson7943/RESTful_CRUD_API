@@ -3,12 +3,17 @@ package auth
 import (
 	"context"
 	"fmt"
+	"log"
+	"math/rand"
 	"net/http"
+	"time"
 
+	internalConfig "github.com/Ashbeeson7943/RESTful_CRUD_API/config"
 	"github.com/Ashbeeson7943/RESTful_CRUD_API/data"
 	database "github.com/Ashbeeson7943/RESTful_CRUD_API/db"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -25,6 +30,10 @@ var access Access
 
 var DB_config database.DatabaseConfig
 
+var Key_config internalConfig.KeyConfig
+
+// Checks the users key and validates it before assigning access "level"
+// NOTE: Access Levels not implemented so just some basic checks are done
 func FindAndValidateAPIKey(c *gin.Context) {
 	var dbKey data.ApiKey
 	requestAPIKey := c.Request.Header.Get("X-API-Key")
@@ -33,7 +42,7 @@ func FindAndValidateAPIKey(c *gin.Context) {
 		err := DB_config.KEYS.FindOne(context.TODO(), filter).Decode(&dbKey)
 		if err != nil {
 			fmt.Println("API Key not found in DB")
-			c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "Invalid API Key"})
+			c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "API Key not found"})
 			access = Access{
 				TYPE: FORBIDDEN,
 			}
@@ -41,7 +50,7 @@ func FindAndValidateAPIKey(c *gin.Context) {
 		}
 		if !dbKey.VALID {
 			fmt.Println("API Key not Valid")
-			c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "Invalid API Key"})
+			c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "Found API Key is invalid please Generate a new one"})
 			access = Access{
 				TYPE: FORBIDDEN,
 			}
@@ -58,6 +67,66 @@ func FindAndValidateAPIKey(c *gin.Context) {
 	}
 }
 
+// Find Keys attached to User
+func GetApiKey(c *gin.Context) {
+	pass := (!ValidateAccess(access, NEW) || !ValidateAccess(access, ALLOWED))
+	if !pass {
+		fmt.Println("No Finding a key for you")
+		return
+	}
+
+	username := c.Param("username")
+	password := c.Param("password")
+
+	var user database.User
+
+	filter := bson.D{{Key: "username", Value: username}}
+	err := DB_config.USERS.FindOne(context.TODO(), filter).Decode(&user)
+	if err != nil {
+		fmt.Println("User not found in DB")
+		c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "user not found in db"})
+		return
+	}
+
+	if password != user.PASSWORD {
+		fmt.Println("password did not match")
+		c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "incorrect password"})
+		return
+	}
+
+	var keys []*data.ApiKey
+	filter = bson.D{{Key: "owner", Value: user.USERNAME}}
+	findOptions := options.Find()
+
+	cur, err := DB_config.KEYS.Find(context.TODO(), filter, findOptions)
+	if err != nil {
+		fmt.Println("API Key not found in DB")
+		c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "API Key not found"})
+		access = Access{
+			TYPE: FORBIDDEN,
+		}
+		return
+	}
+
+	for cur.Next(context.TODO()) {
+		var k data.ApiKey
+		err := cur.Decode(&k)
+		if err != nil {
+			log.Fatal(err)
+		}
+		keys = append(keys, &k)
+	}
+
+	fmt.Println(keys)
+	if len(keys) > 0 {
+		c.IndentedJSON(http.StatusOK, gin.H{"ApiKeys": keys})
+	} else {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "No keys assigned to this user"})
+	}
+
+}
+
+// Generate new API Key for user
 func AddAPIKey(c *gin.Context) {
 	if !ValidateAccess(access, NEW) {
 		fmt.Println("No new Key for you")
@@ -84,7 +153,7 @@ func AddAPIKey(c *gin.Context) {
 
 	apiKey := &data.ApiKey{
 		OWNER: user.USERNAME,
-		VALUE: "key",
+		VALUE: string(generateKey()),
 		VALID: true,
 	}
 
@@ -94,6 +163,11 @@ func AddAPIKey(c *gin.Context) {
 	}
 	fmt.Println(res)
 	c.IndentedJSON(http.StatusCreated, gin.H{"apiKey": apiKey.VALUE})
+}
+
+// Invalidate a users key
+func InvalidateKey(c *gin.Context) {
+	//TODO : Implement
 }
 
 func ValidateAccess(access Access, supportedType string) bool {
@@ -106,4 +180,22 @@ func ValidateAccess(access Access, supportedType string) bool {
 
 func GetAccess() *Access {
 	return &access
+}
+
+func generateKey() []byte {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	key := make([]byte, Key_config.KEY_LENGTH)
+	for i := range key {
+		if i%9 == 0 && i != 0 {
+			key[i] = '-'
+		} else {
+			key[i] = charset[seededRand().Intn(len(charset))]
+		}
+	}
+	return key
+}
+
+func seededRand() *rand.Rand {
+	time.Sleep(50 * time.Millisecond)
+	return rand.New(rand.NewSource(time.Now().UnixNano()))
 }

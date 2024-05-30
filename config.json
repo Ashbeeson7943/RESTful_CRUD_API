@@ -4,5 +4,8 @@
         "host": "localhost",
         "port": "8080",
         "base_path": "/albums"
+    },
+    "key_config": {
+        "key_length": 45
     }
 }

@@ -11,6 +11,11 @@ import (
 type Config struct {
 	DB_URI     string    `json:"dbURI"`
 	API_CONFIG ApiConfig `json:"api_config"`
+	KEY_CONFIG KeyConfig `json:"key_config"`
+}
+
+type KeyConfig struct {
+	KEY_LENGTH int8 `json:"key_length"`
 }
 
 type ApiConfig struct {
