@@ -52,13 +52,13 @@ func main() {
 	//Set routes and handler
 	router.GET(config.API_CONFIG.BASE_PATH, album_routes.GetAlbums)
 	router.GET(fmt.Sprintf("%s/:id", config.API_CONFIG.BASE_PATH), album_routes.GetAlbumByID)
-	router.GET(fmt.Sprintf("%s/:username/:password", "/key"), auth.AddAPIKey)
+	router.POST(fmt.Sprintf("%s/:username/:password", "/key"), auth.AddAPIKey)
 	router.GET(fmt.Sprintf("%s/:username/:password", "/key/find"), auth.GetApiKey)
+	router.PUT("/key/invalidate", auth.InvalidateKey)
 	router.POST(config.API_CONFIG.BASE_PATH, album_routes.PostAlbum)
 	router.PUT(fmt.Sprintf("%s/:id", config.API_CONFIG.BASE_PATH), album_routes.UpdateAlbumByID)
 	router.DELETE(fmt.Sprintf("%s/:id", config.API_CONFIG.BASE_PATH), album_routes.DeleteAlbumByID)
 
 	//Start router
 	router.Run(config.API_CONFIG.FullURL())
-
 }

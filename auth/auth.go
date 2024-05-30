@@ -167,7 +167,22 @@ func AddAPIKey(c *gin.Context) {
 
 // Invalidate a users key
 func InvalidateKey(c *gin.Context) {
-	//TODO : Implement
+	if !ValidateAccess(access, ALLOWED) {
+		fmt.Println("No invalidating Keys for you")
+		return
+	}
+
+	requestAPIKey := c.Request.Header.Get("X-API-Key")
+	filter := bson.D{{Key: "value", Value: requestAPIKey}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "valid", Value: false}}}}
+	opts := options.Update().SetUpsert(true)
+	_, err := DB_config.KEYS.UpdateOne(context.TODO(), filter, update, opts)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found", "error": err})
+		return
+	}
+	c.IndentedJSON(http.StatusAccepted, gin.H{"message": "API Key invalidated"})
+	return
 }
 
 func ValidateAccess(access Access, supportedType string) bool {
