@@ -11,6 +11,7 @@ import (
 	database "github.com/Ashbeeson7943/RESTful_CRUD_API/db"
 	album_routes "github.com/Ashbeeson7943/RESTful_CRUD_API/routes"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func main() {
@@ -35,8 +36,8 @@ func main() {
 	db_config := database.LaunchDB(config)
 	database.SeedAlbumCollection(db_config, data.Albums)
 	database.SeedUserCollection(db_config, database.Users)
-	database.SeedKeyCollection(db_config, []data.ApiKey{
-		{OWNER: "test_1", VALUE: "ABC", VALID: true},
+	auth.SeedKeyCollection(db_config, []auth.ApiKey{
+		{ID: uuid.NewString(), OWNER: "test_1", VALUE: "ABC", VALID: true},
 	})
 
 	//Give access to the collection for the route handlers

@@ -63,14 +63,3 @@ func SeedUserCollection(db_config DatabaseConfig, seed []User) {
 	}
 	fmt.Println("user info inserted")
 }
-
-func SeedKeyCollection(db_config DatabaseConfig, seed []data.ApiKey) {
-	//Seed the key collection
-	db_config.KEYS.Drop(context.TODO())
-	a := []interface{}{seed[0]}
-	_, err := db_config.KEYS.InsertMany(context.TODO(), a)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("key info inserted")
-}

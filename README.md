@@ -6,7 +6,7 @@
 - [x] Write CRUD queries using raw SQL or with an ORM such as GORM
 - [x] Create an HTTP server and HTTP handlers for each CRUD operation using the correct status codes and methods for requests and responses
 - [ ] Add support for API keys
-  - [ ] Handling of API Keys
+  - [x] Handling of API Keys
   - [x] Creation of API Keys
   - [x] Generating a Key
 - [ ] Track API usage per key and implement quotas
