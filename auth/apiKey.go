@@ -67,6 +67,10 @@ func FindAndValidateAPIKey(c *gin.Context) {
 		}
 	} else {
 		fmt.Println("no api key header present")
+		_, exist := c.Params.Get("username")
+		if !exist {
+			c.IndentedJSON(http.StatusOK, gin.H{"message": "No API-Key found please create a new key"})
+		}
 		access = Access{
 			TYPE: NEW,
 		}

@@ -50,6 +50,10 @@ func main() {
 		album_routes.Access = *auth.GetAccess()
 	})
 
+	router.Use(func(ctx *gin.Context) {
+		database.LogKeyUsage(ctx)
+	})
+
 	//Set routes and handler
 	router.GET(config.API_CONFIG.BASE_PATH, album_routes.GetAlbums)
 	router.GET(fmt.Sprintf("%s/:id", config.API_CONFIG.BASE_PATH), album_routes.GetAlbumByID)

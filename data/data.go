@@ -12,3 +12,11 @@ var Albums = []Album{
 	{ID: "2", TITLE: "Jeru", ARTIST: "Gerry Mulligan", PRICE: 17.99},
 	{ID: "3", TITLE: "Sarah Vaughan and Clifford Brown", ARTIST: "Sarah Vaughan", PRICE: 39.99},
 }
+
+type KeyStat struct {
+	KEY_ID   string
+	DATETIME string
+	METHOD   string
+	PATH     string
+	ERR      string
+}
