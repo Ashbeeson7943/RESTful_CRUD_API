@@ -9,6 +9,7 @@ import (
 	internalConfig "github.com/Ashbeeson7943/RESTful_CRUD_API/config"
 	"github.com/Ashbeeson7943/RESTful_CRUD_API/data"
 	database "github.com/Ashbeeson7943/RESTful_CRUD_API/db"
+	usage "github.com/Ashbeeson7943/RESTful_CRUD_API/keyUsage"
 	album_routes "github.com/Ashbeeson7943/RESTful_CRUD_API/routes"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -43,15 +44,13 @@ func main() {
 	//Give access to the collection for the route handlers
 	album_routes.Collection = db_config.ALBUMS
 	auth.DB_config = db_config
+	usage.DB_config = db_config
 
 	//Set Middleware
 	router.Use(func(ctx *gin.Context) {
+		usage.LogKeyUsage(ctx)
 		auth.FindAndValidateAPIKey(ctx)
 		album_routes.Access = *auth.GetAccess()
-	})
-
-	router.Use(func(ctx *gin.Context) {
-		database.LogKeyUsage(ctx)
 	})
 
 	//Set routes and handler

@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	internalConfig "github.com/Ashbeeson7943/RESTful_CRUD_API/config"
 	"github.com/Ashbeeson7943/RESTful_CRUD_API/data"
-	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -19,8 +17,6 @@ type DatabaseConfig struct {
 	ALBUMS *mongo.Collection
 	USAGE  *mongo.Collection
 }
-
-var DB_config DatabaseConfig
 
 func LaunchDB(conf internalConfig.Config) DatabaseConfig {
 
@@ -45,7 +41,6 @@ func LaunchDB(conf internalConfig.Config) DatabaseConfig {
 	db_config.USAGE = c.Database("tmp").Collection("usage")
 	db_config.USAGE.Drop(context.TODO())
 
-	DB_config = db_config
 	return db_config
 
 }
@@ -70,31 +65,4 @@ func SeedUserCollection(db_config DatabaseConfig, seed []User) {
 		log.Fatal(err)
 	}
 	fmt.Println("user info inserted")
-}
-
-func LogKeyUsage(c *gin.Context) {
-	apiKey := c.Request.Header.Get("X-API-Key")
-	if apiKey != "" {
-		stat := data.KeyStat{
-			KEY_ID:   apiKey,
-			DATETIME: string(time.Now().Format(time.DateTime)),
-			METHOD:   c.Request.Method,
-			PATH:     c.Request.URL.Path,
-		}
-		_, err := DB_config.USAGE.InsertOne(context.TODO(), stat)
-		if err != nil {
-			fmt.Println(err)
-		}
-	} else {
-		stat := data.KeyStat{
-			ERR:      "UNAUTHORISED",
-			DATETIME: string(time.Now().Format(time.DateTime)),
-			METHOD:   c.Request.Method,
-			PATH:     c.Request.URL.Path,
-		}
-		_, err := DB_config.USAGE.InsertOne(context.TODO(), stat)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
 }

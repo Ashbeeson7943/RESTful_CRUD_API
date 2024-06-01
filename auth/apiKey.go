@@ -27,6 +27,7 @@ type ApiKey struct {
 	ID    string
 	OWNER string
 	VALUE string
+	USES  int
 	VALID bool
 }
 
@@ -41,38 +42,40 @@ func (k *ApiKey) IsValid() error {
 // Checks the users key and validates it before assigning access "level"
 // NOTE: Access Levels not implemented so just some basic checks are done
 func FindAndValidateAPIKey(c *gin.Context) {
-	var dbKey ApiKey
-	requestAPIKey := c.Request.Header.Get("X-API-Key")
-	if requestAPIKey != "" {
-		filter := bson.D{{Key: "value", Value: requestAPIKey}}
-		err := DB_config.KEYS.FindOne(context.TODO(), filter).Decode(&dbKey)
-		if err != nil {
-			fmt.Println("API Key not found in DB")
-			c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "API Key not found"})
-			access = Access{
-				TYPE: FORBIDDEN,
+	if !Expired {
+		var dbKey ApiKey
+		requestAPIKey := c.Request.Header.Get("X-API-Key")
+		if requestAPIKey != "" {
+			filter := bson.D{{Key: "value", Value: requestAPIKey}}
+			err := DB_config.KEYS.FindOne(context.TODO(), filter).Decode(&dbKey)
+			if err != nil {
+				fmt.Println("API Key not found in DB")
+				c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "API Key not found"})
+				access = Access{
+					TYPE: FORBIDDEN,
+				}
+				return
 			}
-			return
-		}
-		if !dbKey.VALID {
-			fmt.Println("API Key not Valid")
-			c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "Found API Key is invalid please Generate a new one"})
-			access = Access{
-				TYPE: FORBIDDEN,
+			if !dbKey.VALID {
+				fmt.Println("API Key not Valid")
+				c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "Found API Key is invalid please Generate a new one"})
+				access = Access{
+					TYPE: FORBIDDEN,
+				}
+				return
 			}
-			return
-		}
-		access = Access{
-			TYPE: ALLOWED,
-		}
-	} else {
-		fmt.Println("no api key header present")
-		_, exist := c.Params.Get("username")
-		if !exist {
-			c.IndentedJSON(http.StatusOK, gin.H{"message": "No API-Key found please create a new key"})
-		}
-		access = Access{
-			TYPE: NEW,
+			access = Access{
+				TYPE: ALLOWED,
+			}
+		} else {
+			fmt.Println("no api key header present")
+			_, exist := c.Params.Get("username")
+			if !exist {
+				c.IndentedJSON(http.StatusOK, gin.H{"message": "No API-Key found please create a new key"})
+			}
+			access = Access{
+				TYPE: NEW,
+			}
 		}
 	}
 }
@@ -165,6 +168,7 @@ func AddAPIKey(c *gin.Context) {
 		ID:    uuid.NewString(),
 		OWNER: user.USERNAME,
 		VALUE: string(generateKey()),
+		USES:  Key_config.KEY_USES,
 		VALID: true,
 	}
 
@@ -201,10 +205,6 @@ func ValidateAccess(access Access, supportedType string) bool {
 	} else {
 		return true
 	}
-}
-
-func GetAccess() *Access {
-	return &access
 }
 
 func generateKey() []byte {

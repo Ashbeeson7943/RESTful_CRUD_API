@@ -15,7 +15,8 @@ type Config struct {
 }
 
 type KeyConfig struct {
-	KEY_LENGTH int8 `json:"key_length"`
+	KEY_LENGTH int `json:"key_length"`
+	KEY_USES   int `json:"key_uses"`
 }
 
 type ApiConfig struct {

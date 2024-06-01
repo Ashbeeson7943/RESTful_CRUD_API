@@ -6,6 +6,7 @@
         "base_path": "/albums"
     },
     "key_config": {
-        "key_length": 45
+        "key_length": 45,
+        "key_uses": 10
     }
 }
