@@ -9,7 +9,7 @@
   - [x] Handling of API Keys
   - [x] Creation of API Keys
   - [x] Generating a Key
-- [ ] Track API usage per key and implement quotas
+- [x] Track API usage per key and implement quotas
 - [ ] Add a fictional billing system to the API
 - [ ] Set a different price for each CRUD operation
 - [ ] Generate revenue reports and usage reports
