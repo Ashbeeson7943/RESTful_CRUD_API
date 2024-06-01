@@ -25,7 +25,7 @@ func main() {
 		fmt.Println("no config path found")
 		os.Exit(1)
 	}
-
+	
 	//Load config file
 	config := internalConfig.LoadConfig(*configPathPtr)
 	auth.Key_config = config.KEY_CONFIG
